@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% block title %}Bazaar — Checkout{% endblock %}
+{% block extra_style %}
+.page-banner{background:linear-gradient(135deg,var(--saffron) 0%,#FF8C38 100%);color:#fff;padding:36px 0 32px;margin-bottom:32px;}
+.page-banner h2{font-family:'Playfair Display',serif;font-weight:800;margin:0;}
+.form-card{background:#fff;border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--border);padding:28px;margin-bottom:22px;}
+.form-card h5{font-family:'Playfair Display',serif;font-weight:800;color:var(--text);margin-bottom:20px;font-size:1.05rem;border-bottom:2px solid var(--border);padding-bottom:10px;}
+.form-group label{font-weight:600;font-size:.84rem;color:var(--earth);margin-bottom:5px;display:block;}
+.form-control{border:1.5px solid var(--border);border-radius:10px;padding:10px 13px;font-size:.9rem;color:var(--text);transition:.18s;background:#fff;font-family:'DM Sans',sans-serif;width:100%;}
+.form-control:focus{outline:none;border-color:var(--saffron);box-shadow:0 0 0 3px rgba(255,107,0,.1);}
+.form-control.is-invalid{border-color:#ef4444;}
+.input-icon{position:relative;}
+.input-icon i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.88rem;}
+.input-icon .form-control{padding-left:34px;}
+.pay-opt{border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.pay-opt:hover,.pay-opt.sel{border-color:var(--saffron);background:var(--saffron-bg);}
+.pay-opt input[type=radio]{accent-color:var(--saffron);width:17px;height:17px;}
+.pay-label{font-weight:600;font-size:.9rem;color:var(--text);}
+.pay-sub{font-size:.76rem;color:var(--muted);}
+.pay-detail{display:none;background:var(--cream);border-radius:12px;padding:18px;margin-top:4px;margin-bottom:10px;border:1px solid var(--border);}
+.pay-detail.show{display:block;}
+.pay-detail label{font-weight:600;font-size:.82rem;color:var(--earth);margin-bottom:5px;display:block;}
+.pay-detail .form-control{background:#fff;}
+.card-row{display:flex;gap:12px;}
+.card-row .form-group{flex:1;}
+.upi-apps{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.upi-app{border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;cursor:pointer;transition:.15s;font-size:.82rem;font-weight:600;color:var(--text);background:#fff;display:flex;align-items:center;gap:6px;}
+.upi-app:hover,.upi-app.sel{border-color:var(--saffron);background:var(--saffron-bg);color:var(--saffron);}
+.nb-banks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.nb-bank{border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;cursor:pointer;transition:.15s;font-size:.82rem;font-weight:600;color:var(--text);background:#fff;display:flex;align-items:center;gap:7px;}
+.nb-bank:hover,.nb-bank.sel{border-color:var(--saffron);background:var(--saffron-bg);color:var(--saffron);}
+.cod-info{background:#dcfce7;border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;}
+.cod-info i{color:var(--green);font-size:1.2rem;margin-top:2px;}
+.cod-text{font-size:.84rem;color:#166534;font-weight:500;line-height:1.5;}
+.summary-card{background:#fff;border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;position:sticky;top:80px;}
+.summary-card h5{font-family:'Playfair Display',serif;font-weight:800;color:var(--text);margin-bottom:18px;font-size:1.05rem;}
+.s-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.s-item:last-child{border-bottom:none;}
+.s-item img{width:46px;height:46px;object-fit:cover;border-radius:8px;background:#f9f0e8;}
+.s-item-name{flex:1;font-size:.8rem;font-weight:600;color:var(--text);}
+.s-item-price{font-weight:700;color:var(--green);font-size:.85rem;}
+.sum-row{display:flex;justify-content:space-between;margin-bottom:9px;font-size:.88rem;color:var(--muted);}
+.sum-total{display:flex;justify-content:space-between;font-size:1.05rem;font-weight:800;color:var(--text);border-top:2px solid var(--border);padding-top:12px;margin-top:10px;}
+.btn-place{width:100%;padding:14px;background:var(--saffron);color:#fff;border:none;border-radius:12px;font-size:.97rem;font-weight:700;cursor:pointer;transition:.18s;font-family:'DM Sans',sans-serif;}
+.btn-place:hover{background:#e05500;}
+select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238B6F5C' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;}
+{% endblock %}
+{% block content %}
+<div class="page-banner">
+  <div class="container">
+    <h2><i class="fas fa-map-marker-alt" style="margin-right:12px;"></i>Checkout — Delivery Details</h2>
+  </div>
+</div>
+<div class="container pb-5">
+  <form action="/place_order" method="POST" id="checkoutForm" novalidate>
+  <div class="row">
+    <div class="col-lg-8">
+
+      <!-- Personal Details -->
+      <div class="form-card">
+        <h5><i class="fas fa-user" style="color:var(--saffron);margin-right:8px;"></i>Personal Details</h5>
+        <div class="row">
+          <div class="col-md-6 form-group mb-3">
+            <label>Full Name *</label>
+            <div class="input-icon"><i class="fas fa-user"></i>
+              <input type="text" name="full_name" class="form-control" placeholder="Rahul Sharma" required
+                     value="{{ current_user.username if current_user else '' }}">
+            </div>
+          </div>
+          <div class="col-md-6 form-group mb-3">
+            <label>Mobile Number *</label>
+            <div class="input-icon"><i class="fas fa-phone"></i>
+              <input type="tel" name="mobile" class="form-control" placeholder="9876543210" required maxlength="10">
+            </div>
+          </div>
+          <div class="col-12 form-group mb-2">
+            <label>Email Address *</label>
+            <div class="input-icon"><i class="fas fa-envelope"></i>
+              <input type="email" name="email" class="form-control" placeholder="rahul@email.com" required
+                     value="{{ current_user.email if current_user else '' }}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Address -->
+      <div class="form-card">
+        <h5><i class="fas fa-map-marker-alt" style="color:var(--saffron);margin-right:8px;"></i>Delivery Address</h5>
+        <div class="row">
+          <div class="col-12 form-group mb-3">
+            <label>House / Flat No., Street *</label>
+            <div class="input-icon"><i class="fas fa-home"></i>
+              <input type="text" name="address1" class="form-control" placeholder="Flat 4B, MG Road" required>
+            </div>
+          </div>
+          <div class="col-12 form-group mb-3">
+            <label>Area / Locality</label>
+            <div class="input-icon"><i class="fas fa-map"></i>
+              <input type="text" name="address2" class="form-control" placeholder="Vijay Nagar">
+            </div>
+          </div>
+          <div class="col-md-6 form-group mb-3">
+            <label>City *</label>
+            <div class="input-icon"><i class="fas fa-city"></i>
+              <input type="text" name="city" class="form-control" placeholder="Indore" required>
+            </div>
+          </div>
+          <div class="col-md-6 form-group mb-3">
+            <label>State *</label>
+            <div class="input-icon"><i class="fas fa-flag"></i>
+              <select name="state" class="form-control" required>
+                <option value="">— Select State —</option>
+                <option>Andhra Pradesh</option><option>Arunachal Pradesh</option>
+                <option>Assam</option><option>Bihar</option><option>Chhattisgarh</option>
+                <option>Goa</option><option>Gujarat</option><option>Haryana</option>
+                <option>Himachal Pradesh</option><option>Jharkhand</option>
+                <option>Karnataka</option><option>Kerala</option>
+                <option>Madhya Pradesh</option><option>Maharashtra</option>
+                <option>Manipur</option><option>Meghalaya</option><option>Mizoram</option>
+                <option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+                <option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option>
+                <option>Telangana</option><option>Tripura</option><option>Uttar Pradesh</option>
+                <option>Uttarakhand</option><option>West Bengal</option>
+                <option>Delhi</option><option>Jammu &amp; Kashmir</option>
+                <option>Ladakh</option><option>Chandigarh</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6 form-group mb-3">
+            <label>Pincode *</label>
+            <div class="input-icon"><i class="fas fa-map-pin"></i>
+              <input type="text" name="pincode" class="form-control" placeholder="452001" required maxlength="6">
+            </div>
+          </div>
+          <div class="col-md-6 form-group mb-2">
+            <label>Landmark <span style="color:var(--muted);font-weight:400;">(Optional)</span></label>
+            <div class="input-icon"><i class="fas fa-landmark"></i>
+              <input type="text" name="landmark" class="form-control" placeholder="Near Central Mall">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment -->
+      <div class="form-card">
+        <h5><i class="fas fa-credit-card" style="color:var(--saffron);margin-right:8px;"></i>Payment Method</h5>
+
+        <!-- COD -->
+        <label class="pay-opt sel" id="pay-cod" onclick="selPay('cod')">
+          <input type="radio" name="payment_method" value="cod" checked>
+          <span style="font-size:1.3rem;">💵</span>
+          <div><div class="pay-label">Cash on Delivery</div><div class="pay-sub">Pay when order arrives at door</div></div>
+        </label>
+        <div class="pay-detail show" id="detail-cod">
+          <div class="cod-info">
+            <i class="fas fa-check-circle"></i>
+            <div class="cod-text">Pay in cash when your order is delivered. No advance payment needed. Keep exact change ready for a smooth delivery experience.</div>
+          </div>
+        </div>
+
+        <!-- UPI -->
+        <label class="pay-opt" id="pay-upi" onclick="selPay('upi')">
+          <input type="radio" name="payment_method" value="upi">
+          <span style="font-size:1.3rem;">📱</span>
+          <div><div class="pay-label">UPI Payment</div><div class="pay-sub">GPay · PhonePe · Paytm · BHIM</div></div>
+        </label>
+        <div class="pay-detail" id="detail-upi">
+          <div class="upi-apps">
+            <div class="upi-app sel" onclick="selApp(this,'gpay')">📗 Google Pay</div>
+            <div class="upi-app" onclick="selApp(this,'phonepe')">💜 PhonePe</div>
+            <div class="upi-app" onclick="selApp(this,'paytm')">💙 Paytm</div>
+            <div class="upi-app" onclick="selApp(this,'bhim')">🇮🇳 BHIM</div>
+          </div>
+          <div class="form-group">
+            <label>Enter UPI ID *</label>
+            <div class="input-icon"><i class="fas fa-at"></i>
+              <input type="text" name="upi_id" id="upi_id" class="form-control" placeholder="yourname@upi" autocomplete="off">
+            </div>
+            <div style="font-size:.75rem;color:var(--muted);margin-top:5px;">Example: 9876543210@gpay · name@ybl · name@paytm</div>
+          </div>
+        </div>
+
+        <!-- Card -->
+        <label class="pay-opt" id="pay-card" onclick="selPay('card')">
+          <input type="radio" name="payment_method" value="card">
+          <span style="font-size:1.3rem;">💳</span>
+          <div><div class="pay-label">Credit / Debit Card</div><div class="pay-sub">Visa · Mastercard · RuPay · Amex</div></div>
+        </label>
+        <div class="pay-detail" id="detail-card">
+          <div class="form-group mb-3">
+            <label>Card Number *</label>
+            <div class="input-icon"><i class="fas fa-credit-card"></i>
+              <input type="text" name="card_number" id="card_number" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            <label>Cardholder Name *</label>
+            <div class="input-icon"><i class="fas fa-user"></i>
+              <input type="text" name="card_name" id="card_name" class="form-control" placeholder="Name as on card">
+            </div>
+          </div>
+          <div class="card-row">
+            <div class="form-group mb-2">
+              <label>Expiry Date *</label>
+              <input type="text" name="card_expiry" id="card_expiry" class="form-control" placeholder="MM/YY" maxlength="5">
+            </div>
+            <div class="form-group mb-2">
+              <label>CVV *</label>
+              <div class="input-icon"><i class="fas fa-lock"></i>
+                <input type="password" name="card_cvv" id="card_cvv" class="form-control" placeholder="•••" maxlength="4">
+              </div>
+            </div>
+          </div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:4px;"><i class="fas fa-shield-alt" style="color:var(--green);margin-right:4px;"></i>Your card details are encrypted and secure.</div>
+        </div>
+
+        <!-- Net Banking -->
+        <label class="pay-opt" id="pay-nb" onclick="selPay('netbanking')">
+          <input type="radio" name="payment_method" value="netbanking">
+          <span style="font-size:1.3rem;">🏦</span>
+          <div><div class="pay-label">Net Banking</div><div class="pay-sub">All major Indian banks supported</div></div>
+        </label>
+        <div class="pay-detail" id="detail-netbanking">
+          <div class="nb-banks">
+            <div class="nb-bank sel" onclick="selBank(this,'sbi')">🏛 State Bank of India</div>
+            <div class="nb-bank" onclick="selBank(this,'hdfc')">🏦 HDFC Bank</div>
+            <div class="nb-bank" onclick="selBank(this,'icici')">🏦 ICICI Bank</div>
+            <div class="nb-bank" onclick="selBank(this,'axis')">🏦 Axis Bank</div>
+            <div class="nb-bank" onclick="selBank(this,'kotak')">🏦 Kotak Bank</div>
+            <div class="nb-bank" onclick="selBank(this,'pnb')">🏦 Punjab National</div>
+          </div>
+          <div class="form-group">
+            <label>Or select other bank</label>
+            <select name="nb_bank" id="nb_bank" class="form-control">
+              <option value="">— Select Bank —</option>
+              <option>Bank of Baroda</option><option>Canara Bank</option>
+              <option>Union Bank</option><option>Indian Bank</option>
+              <option>Yes Bank</option><option>IndusInd Bank</option>
+              <option>Federal Bank</option><option>IDFC First Bank</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Wallet -->
+        <label class="pay-opt" id="pay-wallet" onclick="selPay('wallet')">
+          <input type="radio" name="payment_method" value="wallet">
+          <span style="font-size:1.3rem;">👛</span>
+          <div><div class="pay-label">Digital Wallet</div><div class="pay-sub">Paytm Wallet · Amazon Pay · Mobikwik</div></div>
+        </label>
+        <div class="pay-detail" id="detail-wallet">
+          <div class="nb-banks">
+            <div class="nb-bank sel" onclick="selWallet(this,'paytm')">💙 Paytm Wallet</div>
+            <div class="nb-bank" onclick="selWallet(this,'amazon')">🟠 Amazon Pay</div>
+            <div class="nb-bank" onclick="selWallet(this,'mobikwik')">🔵 Mobikwik</div>
+            <div class="nb-bank" onclick="selWallet(this,'freecharge')">🟢 FreeCharge</div>
+          </div>
+          <div class="form-group">
+            <label>Registered Mobile Number *</label>
+            <div class="input-icon"><i class="fas fa-phone"></i>
+              <input type="tel" name="wallet_mobile" id="wallet_mobile" class="form-control" placeholder="9876543210" maxlength="10">
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" name="upi_app" id="upi_app_field" value="gpay">
+        <input type="hidden" name="selected_bank" id="bank_field" value="sbi">
+        <input type="hidden" name="selected_wallet" id="wallet_field" value="paytm">
+      </div>
+
+    </div>
+
+    <!-- Order Summary -->
+    <div class="col-lg-4">
+      <div class="summary-card">
+        <h5>Order Summary</h5>
+        {% for item in items %}
+        <div class="s-item">
+          <img src="{{ item.image_url or '/static/img/img_1.png' }}" onerror="this.src='/static/img/img_1.png'">
+          <div class="s-item-name">{{ item.name[:45] }}{% if item.name|length > 45 %}…{% endif %}
+            <div style="color:var(--muted);font-size:.73rem;">Qty: {{ item.quantity }}</div>
+          </div>
+          <div class="s-item-price">₹{{ (item.price * item.quantity)|int }}</div>
+        </div>
+        {% endfor %}
+        <div style="margin-top:14px;">
+          <div class="sum-row"><span>Subtotal</span><span>₹{{ total|int }}</span></div>
+          <div class="sum-row"><span>Discount (10%)</span><span style="color:var(--green);">-₹{{ discount }}</span></div>
+          <div class="sum-row"><span>Delivery</span>
+            <span>{% if delivery == 0 %}<span style="color:var(--green);">FREE</span>{% else %}₹{{ delivery }}{% endif %}</span>
+          </div>
+          <div class="sum-total"><span>Total</span><span style="color:var(--saffron);">₹{{ final }}</span></div>
+        </div>
+        <button type="submit" class="btn-place mt-3">
+          <i class="fas fa-check-circle" style="margin-right:8px;"></i>Place Order — ₹{{ final }}
+        </button>
+        <a href="/cart" style="display:block;text-align:center;margin-top:12px;color:var(--saffron);font-size:.84rem;font-weight:600;text-decoration:none;">
+          <i class="fas fa-arrow-left" style="margin-right:4px;"></i>Back to Cart
+        </a>
+        <div style="text-align:center;margin-top:12px;font-size:.76rem;color:var(--muted);">
+          <i class="fas fa-shield-alt" style="color:var(--green);margin-right:4px;"></i>100% Safe &amp; Secure
+        </div>
+      </div>
+    </div>
+  </div>
+  </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+var activePay = 'cod';
+
+function selPay(val) {
+  activePay = val;
+  document.querySelectorAll('.pay-opt').forEach(function(e){e.classList.remove('sel');});
+  document.querySelectorAll('.pay-detail').forEach(function(e){e.classList.remove('show');});
+  document.getElementById('pay-'+val).classList.add('sel');
+  document.getElementById('detail-'+val).classList.add('show');
+  // check the radio inside
+  var radio = document.querySelector('#pay-'+val+' input[type=radio]');
+  if(radio) radio.checked = true;
+}
+
+function selApp(el, app) {
+  document.querySelectorAll('.upi-app').forEach(function(e){e.classList.remove('sel');});
+  el.classList.add('sel');
+  document.getElementById('upi_app_field').value = app;
+}
+
+function selBank(el, bank) {
+  document.querySelectorAll('.nb-bank').forEach(function(e){e.classList.remove('sel');});
+  el.classList.add('sel');
+  document.getElementById('bank_field').value = bank;
+  document.getElementById('nb_bank').value = '';
+}
+
+function selWallet(el, wallet) {
+  document.querySelectorAll('#detail-wallet .nb-bank').forEach(function(e){e.classList.remove('sel');});
+  el.classList.add('sel');
+  document.getElementById('wallet_field').value = wallet;
+}
+
+// Format card number with spaces
+var cardNum = document.getElementById('card_number');
+if(cardNum) cardNum.addEventListener('input', function(){
+  var v = this.value.replace(/\D/g,'').substring(0,16);
+  this.value = v.replace(/(.{4})/g,' ').trim();
+});
+
+// Format expiry MM/YY
+var expiry = document.getElementById('card_expiry');
+if(expiry) expiry.addEventListener('input', function(){
+  var v = this.value.replace(/\D/g,'');
+  if(v.length>=2) v = v.substring(0,2)+'/'+v.substring(2,4);
+  this.value = v;
+});
+
+document.getElementById('checkoutForm').addEventListener('submit', function(e){
+  var ok = true;
+  // Validate base required fields
+  ['full_name','mobile','email','address1','city','state','pincode'].forEach(function(name){
+    var f = document.querySelector('[name='+name+']');
+    if(f && !f.value.trim()){ f.classList.add('is-invalid'); ok=false; }
+  });
+  // Validate payment-specific fields
+  if(activePay === 'upi'){
+    var uid = document.getElementById('upi_id');
+    if(!uid.value.trim()){ uid.classList.add('is-invalid'); ok=false; }
+  }
+  if(activePay === 'card'){
+    ['card_number','card_name','card_expiry','card_cvv'].forEach(function(id){
+      var f = document.getElementById(id);
+      if(f && !f.value.trim()){ f.classList.add('is-invalid'); ok=false; }
+    });
+  }
+  if(activePay === 'wallet'){
+    var wm = document.getElementById('wallet_mobile');
+    if(!wm.value.trim()){ wm.classList.add('is-invalid'); ok=false; }
+  }
+  if(!ok){
+    e.preventDefault();
+    window.scrollTo({top:0,behavior:'smooth'});
+    showToast('Please fill all required fields.','danger');
+  }
+});
+
+document.querySelectorAll('.form-control').forEach(function(e){
+  e.addEventListener('input', function(){ this.classList.remove('is-invalid'); });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Bazaar — Join Free{% endblock %}
+{% block extra_style %}
+.auth-page { min-height: 85vh; display: flex; align-items: center; justify-content: center; padding: 40px 16px; }
+.auth-card { background: #fff; border-radius: 24px; box-shadow: 0 12px 48px rgba(124,74,30,.13); padding: 48px 44px; width: 100%; max-width: 480px; border: 1.5px solid var(--border); }
+.auth-top { text-align: center; margin-bottom: 28px; }
+.auth-logo { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--saffron); font-weight: 800; display: block; margin-bottom: 6px; }
+.auth-card h4 { font-family: 'Playfair Display', serif; font-weight: 800; color: var(--text); font-size: 1.4rem; margin-bottom: 4px; }
+.auth-card p  { color: var(--muted); font-size: .9rem; }
+.form-label-custom { font-weight: 600; font-size: .83rem; color: var(--text); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .3px; }
+.form-input { width: 100%; padding: 13px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: .95rem; outline: none; transition: border .2s; font-family: 'DM Sans', sans-serif; color: var(--text); margin-bottom: 18px; }
+.form-input:focus { border-color: var(--saffron); }
+.btn-auth { width: 100%; padding: 14px; background: var(--saffron); color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: .18s; font-family: 'DM Sans', sans-serif; }
+.btn-auth:hover { background: #e05500; transform: translateY(-1px); }
+.perks { background: var(--saffron-bg); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; border: 1px solid rgba(255,107,0,.15); }
+.perks li { font-size: .85rem; color: var(--earth); margin-bottom: 7px; display: flex; align-items: center; gap: 8px; }
+.auth-divider { text-align: center; color: var(--muted); font-size: .85rem; margin: 20px 0; position: relative; }
+.auth-divider::before, .auth-divider::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: var(--border); }
+.auth-divider::before { left: 0; } .auth-divider::after { right: 0; }
+{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-top">
+      <span class="auth-logo">बाज़ार Bazaar</span>
+      <h4>Join the Bazaar Family! 🎉</h4>
+      <p>Create your free account in seconds and start shopping smarter</p>
+    </div>
+    <ul class="perks list-unstyled">
+      <li><span>🛒</span> Add products to your Cart and Wishlist</li>
+      <li><span>🤖</span> Get personalised AI product recommendations</li>
+      <li><span>🎁</span> Exclusive member deals and early access offers</li>
+      <li><span>🚚</span> Free delivery on orders above ₹999</li>
+    </ul>
+    <form action="/signup" method="post">
+      <label class="form-label-custom">Username</label>
+      <input type="text" class="form-input" name="username" placeholder="Choose a cool username" required autofocus>
+      <label class="form-label-custom">Email Address</label>
+      <input type="email" class="form-input" name="email" placeholder="your@email.com" required>
+      <label class="form-label-custom">Password</label>
+      <input type="password" class="form-input" name="password" placeholder="Create a strong password" required minlength="4">
+      <button type="submit" class="btn-auth"><i class="fas fa-user-plus" style="margin-right:8px;"></i>Create My Free Account</button>
+    </form>
+    <div class="auth-divider">or</div>
+    <div class="text-center" style="font-size:.9rem;color:var(--muted);">
+      Already have an account? <a href="/signin" style="color:var(--saffron);font-weight:700;">Sign in →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

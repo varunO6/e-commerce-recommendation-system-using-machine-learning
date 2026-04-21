@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Bazaar — My Cart{% endblock %}
+{% block extra_style %}
+.page-banner { background: linear-gradient(135deg,var(--saffron) 0%,#FF8C38 100%); color:#fff; padding:40px 0 36px; margin-bottom:36px; }
+.page-banner h2 { font-family:'Playfair Display',serif; font-weight:800; margin:0; }
+.cart-card { background:#fff; border-radius:18px; box-shadow:var(--shadow); border:1px solid var(--border); overflow:hidden; }
+.c-item { display:flex; align-items:center; padding:20px 24px; border-bottom:1px solid var(--border); gap:16px; transition:background .15s; }
+.c-item:hover { background:var(--saffron-bg); }
+.c-item:last-child { border-bottom:none; }
+.c-img { width:82px; height:82px; object-fit:cover; border-radius:12px; flex-shrink:0; background:#f9f0e8; border:1px solid var(--border); }
+.c-name  { font-weight:700; font-size:.93rem; color:var(--text); margin-bottom:2px; }
+.c-brand { font-size:.78rem; color:var(--saffron); font-weight:600; margin-bottom:4px; }
+.c-price { font-size:1.05rem; font-weight:800; color:var(--green); }
+.qty-row { display:flex; align-items:center; gap:8px; }
+.qty-btn { width:32px; height:32px; border:1.5px solid var(--border); border-radius:8px; background:#fff; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.15s; font-weight:700; color:var(--muted); }
+.qty-btn:hover { border-color:var(--saffron); color:var(--saffron); background:var(--saffron-bg); }
+.qty-val { font-weight:800; min-width:28px; text-align:center; font-size:1rem; }
+.del-btn { background:none; border:none; color:#ccc; cursor:pointer; font-size:1.1rem; padding:6px 8px; border-radius:8px; transition:.15s; }
+.del-btn:hover { color:#ef4444; background:#fef2f2; }
+.summary-card { background:#fff; border-radius:18px; box-shadow:var(--shadow); border:1px solid var(--border); padding:28px; position:sticky; top:80px; }
+.summary-card h5 { font-family:'Playfair Display',serif; font-weight:800; color:var(--text); margin-bottom:20px; font-size:1.15rem; }
+.sum-row { display:flex; justify-content:space-between; margin-bottom:10px; font-size:.9rem; color:var(--muted); }
+.sum-total { display:flex; justify-content:space-between; font-size:1.1rem; font-weight:800; color:var(--text); border-top:2px solid var(--border); padding-top:14px; margin-top:10px; }
+.savings-tag { background:#dcfce7; color:var(--green); border-radius:8px; padding:10px 16px; font-size:.85rem; font-weight:600; margin-bottom:16px; text-align:center; }
+.btn-checkout { width:100%; padding:15px; background:var(--saffron); color:#fff; border:none; border-radius:12px; font-size:1rem; font-weight:700; cursor:pointer; transition:.18s; font-family:'DM Sans',sans-serif; }
+.btn-checkout:hover { background:#e05500; }
+.btn-clear { width:100%; padding:11px; background:none; border:1.5px solid var(--border); color:var(--muted); border-radius:10px; font-size:.88rem; cursor:pointer; margin-top:8px; transition:.18s; font-family:'DM Sans',sans-serif; }
+.btn-clear:hover { border-color:#ef4444; color:#ef4444; }
+.free-del-bar { background:var(--saffron-bg); border-radius:10px; padding:12px 16px; font-size:.83rem; color:var(--earth); margin-bottom:16px; font-weight:500; border:1px solid rgba(255,107,0,.15); }
+.empty-cart { text-align:center; padding:90px 20px; }
+.empty-icon-big { font-size:5rem; display:block; margin-bottom:20px; }
+{% endblock %}
+{% block content %}
+<div class="page-banner">
+  <div class="container">
+    <h2><i class="fas fa-shopping-bag" style="margin-right:14px;"></i>My Cart
+      <span style="font-size:1rem;font-weight:600;background:rgba(255,255,255,.2);border-radius:20px;padding:4px 14px;margin-left:12px;vertical-align:middle;">
+        {{ items|length }} item{{ 's' if items|length != 1 }}
+      </span>
+    </h2>
+  </div>
+</div>
+
+<div class="container pb-5">
+  {% if items %}
+  <div class="row">
+    <div class="col-lg-8 mb-4">
+      <div class="cart-card" id="cartList">
+        {% for item in items %}
+        <div class="c-item" id="row-{{ item.id }}">
+          <img class="c-img" src="{{ item.image_url or '/static/img/img_1.png' }}" onerror="this.src='/static/img/img_1.png'" alt="{{ item.name }}">
+          <div style="flex:1;min-width:0;">
+            <div class="c-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ item.name }}">{{ item.name }}</div>
+            <div class="c-brand"><i class="fas fa-tag" style="margin-right:3px;"></i>{{ item.brand }}</div>
+            <div class="c-price">₹{{ item.price|int }}</div>
+          </div>
+          <div class="qty-row">
+            <button class="qty-btn" onclick="updateQty({{ item.id }}, {{ item.quantity - 1 }})">−</button>
+            <span class="qty-val" id="qty-{{ item.id }}">{{ item.quantity }}</span>
+            <button class="qty-btn" onclick="updateQty({{ item.id }}, {{ item.quantity + 1 }})">+</button>
+          </div>
+          <div style="font-weight:800;color:var(--green);min-width:70px;text-align:right;font-size:1rem;" id="subtotal-{{ item.id }}">
+            ₹{{ (item.price * item.quantity)|int }}
+          </div>
+          <button class="del-btn" onclick="removeItem({{ item.id }})" title="Remove item">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-3 d-flex gap-3" style="gap:12px;">
+        <a href="/main" style="color:var(--saffron);font-weight:600;text-decoration:none;font-size:.9rem;">
+          <i class="fas fa-arrow-left" style="margin-right:6px;"></i>Continue Shopping
+        </a>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="summary-card">
+        <h5>Order Summary</h5>
+        {% set savings = (total * 0.2)|int %}
+        <div class="savings-tag">🎉 You're saving ₹{{ savings }} on this order!</div>
+        <div class="free-del-bar">
+          {% if total >= 999 %}
+          ✅ Yay! You qualify for <strong>Free Delivery</strong>
+          {% else %}
+          🚚 Add ₹{{ (999 - total)|int }} more for <strong>Free Delivery</strong>
+          {% endif %}
+        </div>
+        <div class="sum-row"><span>Subtotal ({{ items|length }} items)</span><span id="subtotalVal">₹{{ total|int }}</span></div>
+        <div class="sum-row"><span>Delivery</span><span class="text-success font-weight-600">{% if total >= 999 %}FREE{% else %}₹49{% endif %}</span></div>
+        <div class="sum-row"><span>Discount (WELCOME10)</span><span style="color:var(--green);">-₹{{ (total * 0.1)|int }}</span></div>
+        <div class="sum-total"><span>Total Amount</span><span id="totalVal">₹{{ (total * 0.9)|int }}</span></div>
+        <form action="/checkout" method="get" class="mt-3">
+          <button type="submit" class="btn-checkout">
+            <i class="fas fa-lock" style="margin-right:8px;"></i>Place Order — ₹<span id="checkoutTotal">{{ (total * 0.9)|int }}</span>
+          </button>
+        </form>
+        <button class="btn-clear" onclick="clearCart()"><i class="fas fa-trash" style="margin-right:6px;"></i>Clear Cart</button>
+        <div style="text-align:center;margin-top:14px;font-size:.78rem;color:var(--muted);">
+          <i class="fas fa-shield-alt" style="color:var(--green);margin-right:4px;"></i>Safe & Secure Checkout
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="empty-cart">
+    <span class="empty-icon-big">🛒</span>
+    <h5 style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--text);">Your cart is empty!</h5>
+    <p style="color:var(--muted);max-width:380px;margin:10px auto 24px;">Looks like you haven't added anything yet. Discover amazing products and start filling up your cart!</p>
+    <a href="/main" style="background:var(--saffron);color:#fff;padding:14px 32px;border-radius:12px;font-weight:700;text-decoration:none;font-size:1rem;display:inline-block;">
+      <i class="fas fa-magic" style="margin-right:8px;"></i>Find Products
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateQty(id, qty) {
+  if(qty<1){removeItem(id);return;}
+  fetch('/api/cart/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,quantity:qty})})
+  .then(r=>r.json()).then(function(d){
+    if(d.success){
+      document.getElementById('qty-'+id).textContent=qty;
+      var priceEl=document.querySelector('#row-'+id+' .c-price');
+      if(priceEl){
+        var price=parseInt(priceEl.textContent.replace('₹','').replace(/,/g,''));
+        document.getElementById('subtotal-'+id).textContent='₹'+(price*qty).toLocaleString('en-IN');
+      }
+      updateTotals(d.total);updateCartBadge(d.cart_count);
+    }
+  });
+}
+function removeItem(id) {
+  fetch('/api/cart/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})})
+  .then(r=>r.json()).then(function(d){
+    if(d.success){
+      var row=document.getElementById('row-'+id);
+      row.style.transition='all .3s';row.style.opacity='0';row.style.maxHeight='0';
+      setTimeout(function(){row.remove();checkEmpty();},300);
+      updateTotals(d.total);updateCartBadge(d.cart_count);
+      showToast('Item removed from cart','info');
+    }
+  });
+}
+function clearCart() {
+  if(!confirm('Clear all items from your cart?'))return;
+  fetch('/api/cart/clear',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  .then(r=>r.json()).then(function(d){
+    if(d.success){document.getElementById('cartList').innerHTML='';updateTotals(0);updateCartBadge(0);checkEmpty();showToast('Cart cleared','info');}
+  });
+}
+function updateTotals(total) {
+  var t=parseInt(total);
+  if(document.getElementById('subtotalVal')) document.getElementById('subtotalVal').textContent='₹'+t.toLocaleString('en-IN');
+  var disc=Math.round(t*0.9);
+  if(document.getElementById('totalVal')) document.getElementById('totalVal').textContent='₹'+disc.toLocaleString('en-IN');
+  if(document.getElementById('checkoutTotal')) document.getElementById('checkoutTotal').textContent=disc.toLocaleString('en-IN');
+}
+function checkEmpty(){
+  if(!document.querySelector('.c-item')){
+    document.getElementById('cartList').innerHTML='<div style="text-align:center;padding:50px 20px;color:var(--muted);"><span style="font-size:3rem;">🛒</span><h5 style="margin-top:16px;">Cart is empty</h5><a href="/main" style="color:var(--saffron);font-weight:700;">Find Products →</a></div>';
+    var col=document.querySelector('.col-lg-4');if(col)col.style.display='none';
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Bazaar — My Orders{% endblock %}
+{% block extra_style %}
+.page-banner{background:linear-gradient(135deg,var(--saffron) 0%,#FF8C38 100%);color:#fff;padding:36px 0 32px;margin-bottom:32px;}
+.page-banner h2{font-family:'Playfair Display',serif;font-weight:800;margin:0;}
+.order-card{background:#fff;border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:18px;overflow:hidden;}
+.order-head{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border);background:var(--saffron-bg);flex-wrap:wrap;gap:8px;}
+.order-id-tag{font-family:'Playfair Display',serif;font-weight:800;color:var(--earth);font-size:.97rem;}
+.order-date{font-size:.78rem;color:var(--muted);}
+.status-badge{padding:4px 13px;border-radius:20px;font-size:.76rem;font-weight:700;}
+.status-Confirmed{background:#dcfce7;color:#16a34a;}
+.status-Shipped{background:#dbeafe;color:#2563eb;}
+.status-Delivered{background:#d1fae5;color:#059669;}
+.status-Cancelled{background:#fee2e2;color:#dc2626;}
+.order-body{padding:16px 22px;}
+.mini-items{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;}
+.mini-item{display:flex;align-items:center;gap:8px;background:var(--cream);border-radius:10px;padding:7px 11px;border:1px solid var(--border);}
+.mini-item img{width:36px;height:36px;object-fit:cover;border-radius:7px;}
+.mini-item-name{font-size:.76rem;font-weight:600;color:var(--text);max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-item-qty{font-size:.7rem;color:var(--muted);}
+.order-foot{display:flex;align-items:center;justify-content:space-between;padding:13px 22px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+.order-addr{font-size:.8rem;color:var(--muted);}
+.order-total{font-weight:800;color:var(--green);font-size:.97rem;}
+.pay-pill{font-size:.76rem;background:#f9f0e8;color:var(--earth);border-radius:8px;padding:3px 10px;font-weight:600;}
+.btn-cancel{border:1.5px solid #ef4444;color:#ef4444;background:none;border-radius:8px;padding:5px 13px;font-size:.78rem;font-weight:700;cursor:pointer;transition:.18s;font-family:'DM Sans',sans-serif;}
+.btn-cancel:hover{background:#ef4444;color:#fff;}
+.cancel-reason{font-size:.74rem;color:#dc2626;margin-top:4px;}
+.empty-orders{text-align:center;padding:80px 20px;}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:#fff;border-radius:18px;padding:28px 24px;max-width:380px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal-box h5{font-family:'Playfair Display',serif;font-weight:800;color:var(--text);margin-bottom:14px;}
+.reason-opt{border:1.5px solid var(--border);border-radius:10px;padding:9px 13px;margin-bottom:8px;cursor:pointer;transition:.15s;font-size:.86rem;font-weight:500;}
+.reason-opt:hover,.reason-opt.sel{border-color:#ef4444;background:#fef2f2;color:#dc2626;}
+.btn-confirm-cancel{width:100%;padding:12px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.93rem;cursor:pointer;margin-top:10px;font-family:'DM Sans',sans-serif;}
+.btn-confirm-cancel:hover{background:#dc2626;}
+.btn-keep{width:100%;padding:10px;background:none;border:1.5px solid var(--border);border-radius:10px;font-weight:600;font-size:.86rem;cursor:pointer;margin-top:7px;font-family:'DM Sans',sans-serif;color:var(--muted);}
+{% endblock %}
+{% block content %}
+<div class="page-banner">
+  <div class="container">
+    <h2><i class="fas fa-list-alt" style="margin-right:12px;"></i>My Orders
+      <span style="font-size:.95rem;font-weight:600;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 13px;margin-left:10px;vertical-align:middle;">
+        {{ orders|length }} order{{ 's' if orders|length != 1 }}
+      </span>
+    </h2>
+  </div>
+</div>
+<div class="container pb-5">
+  {% if orders %}
+    {% for order in orders %}
+    {% set items = order.items_snapshot|from_json %}
+    <div class="order-card">
+      <div class="order-head">
+        <div>
+          <div class="order-id-tag">📦 Order #{{ '%04d'|format(order.id) }}</div>
+          <div class="order-date"><i class="fas fa-clock" style="margin-right:4px;"></i>{{ order.placed_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+        </div>
+        <span class="status-badge status-{{ order.status }}">{{ order.status }}</span>
+      </div>
+      <div class="order-body">
+        <div class="mini-items">
+          {% for item in items %}
+          <div class="mini-item">
+            <img src="{{ item.image_url or '/static/img/img_1.png' }}" onerror="this.src='/static/img/img_1.png'">
+            <div>
+              <div class="mini-item-name" title="{{ item.name }}">{{ item.name[:28] }}{% if item.name|length > 28 %}…{% endif %}</div>
+              <div class="mini-item-qty">Qty: {{ item.qty }} × ₹{{ item.price|int }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% if order.status == 'Cancelled' and order.cancel_reason %}
+        <div class="cancel-reason"><i class="fas fa-info-circle" style="margin-right:4px;"></i>Reason: {{ order.cancel_reason }}</div>
+        {% endif %}
+      </div>
+      <div class="order-foot">
+        <div class="order-addr">
+          <i class="fas fa-map-marker-alt" style="color:var(--saffron);margin-right:4px;"></i>
+          {{ order.address1 }}, {{ order.city }}, {{ order.state }} — {{ order.pincode }}
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span class="pay-pill">
+            {% if order.payment_method=='cod' %}💵 COD
+            {% elif order.payment_method=='upi' %}📱 UPI
+            {% elif order.payment_method=='card' %}💳 Card
+            {% else %}🏦 Net Banking{% endif %}
+          </span>
+          <div class="order-total">₹{{ order.total_amount|int }}</div>
+          {% if order.status not in ['Cancelled','Delivered'] %}
+          <button class="btn-cancel" onclick="openCancel({{ order.id }})">Cancel Order</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="empty-orders">
+    <span style="font-size:4.5rem;display:block;margin-bottom:18px;">📦</span>
+    <h5 style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--text);">No orders yet!</h5>
+    <p style="color:var(--muted);max-width:360px;margin:10px auto 22px;">You haven't placed any orders yet. Start shopping!</p>
+    <a href="/main" style="background:var(--saffron);color:#fff;padding:13px 30px;border-radius:12px;font-weight:700;text-decoration:none;font-size:.97rem;display:inline-block;">
+      <i class="fas fa-magic" style="margin-right:7px;"></i>Start Shopping
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal-box">
+    <h5>Cancel Order</h5>
+    <p style="color:var(--muted);font-size:.86rem;margin-bottom:14px;">Select a reason for cancellation:</p>
+    <div>
+      <div class="reason-opt sel" onclick="selReason(this,'Changed my mind')">Changed my mind</div>
+      <div class="reason-opt" onclick="selReason(this,'Ordered by mistake')">Ordered by mistake</div>
+      <div class="reason-opt" onclick="selReason(this,'Found a better price')">Found a better price</div>
+      <div class="reason-opt" onclick="selReason(this,'Delivery time too long')">Delivery time too long</div>
+      <div class="reason-opt" onclick="selReason(this,'Other')">Other</div>
+    </div>
+    <form id="cancelForm" method="POST">
+      <input type="hidden" name="reason" id="cancelReasonField" value="Changed my mind">
+      <button type="submit" class="btn-confirm-cancel"><i class="fas fa-times-circle" style="margin-right:7px;"></i>Confirm Cancel</button>
+    </form>
+    <button class="btn-keep" onclick="closeCancel()">Keep Order</button>
+  </div>
+</div>
+<script>
+function selReason(el,r){
+  document.querySelectorAll('.reason-opt').forEach(function(o){o.classList.remove('sel');});
+  el.classList.add('sel');
+  document.getElementById('cancelReasonField').value=r;
+}
+function openCancel(id){
+  document.getElementById('cancelForm').action='/cancel_order/'+id;
+  document.getElementById('cancelModal').classList.add('open');
+}
+function closeCancel(){document.getElementById('cancelModal').classList.remove('open');}
+document.getElementById('cancelModal').addEventListener('click',function(e){if(e.target===this)closeCancel();});
+</script>
+{% endblock %}

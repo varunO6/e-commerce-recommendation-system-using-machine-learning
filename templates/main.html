@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block title %}Bazaar — Find Your Perfect Product{% endblock %}
+
+{% block extra_style %}
+.search-hero {
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8C38 60%, #FFB347 100%);
+  padding: 60px 20px 78px; text-align: center; color: #fff; position: relative; overflow: hidden;
+}
+.search-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 70%, rgba(255,255,255,.07) 0%, transparent 60%);
+}
+.search-hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem; font-weight: 800; position: relative; margin-bottom: 8px;
+}
+.search-hero p { opacity: .9; font-size: 1rem; position: relative; margin-bottom: 28px; }
+
+.search-box {
+  max-width: 760px; margin: 0 auto; background: #fff; border-radius: 20px;
+  padding: 28px 32px; box-shadow: 0 16px 48px rgba(0,0,0,.18); position: relative;
+}
+.search-box label { color: var(--muted); font-weight: 600; font-size: .83rem; margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: .4px; }
+.s-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.s-row .iw { flex: 1; min-width: 200px; position: relative; }
+#prodInput {
+  width: 100%; padding: 14px 18px; border: 2px solid var(--border);
+  border-radius: 12px; font-size: 1rem; outline: none; transition: border .2s;
+  font-family: 'DM Sans', sans-serif; color: var(--text);
+}
+#prodInput:focus { border-color: var(--saffron); }
+#nbrInput {
+  width: 110px; padding: 14px 14px; border: 2px solid var(--border);
+  border-radius: 12px; font-size: 1rem; outline: none; transition: border .2s;
+  font-family: 'DM Sans', sans-serif;
+}
+#nbrInput:focus { border-color: var(--saffron); }
+#searchBtn {
+  padding: 14px 30px; background: var(--saffron); color: #fff; border: none;
+  border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: .18s; white-space: nowrap; font-family: 'DM Sans', sans-serif;
+}
+#searchBtn:hover { background: #e05500; transform: translateY(-1px); }
+
+/* Autocomplete */
+#ac-list {
+  position: absolute; top: 100%; left: 0; right: 0; background: #fff;
+  border: 1.5px solid var(--border); border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.12); z-index: 9999;
+  max-height: 270px; overflow-y: auto; margin-top: 6px; display: none;
+}
+.ac-item { padding: 12px 18px; cursor: pointer; font-size: .9rem; border-bottom: 1px solid #fdf0e6; color: var(--text); transition: .1s; }
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.active { background: var(--saffron-bg); color: var(--saffron); }
+.ac-item em { font-style: normal; font-weight: 700; color: var(--saffron); }
+
+.chip-row { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+.s-chip {
+  cursor: pointer; color: var(--saffron); font-size: .8rem; padding: 4px 12px;
+  background: var(--saffron-bg); border: 1px solid rgba(255,107,0,.2);
+  border-radius: 20px; transition: .15s; font-weight: 600;
+}
+.s-chip:hover { background: var(--saffron); color: #fff; }
+
+/* Results */
+#results { padding: 40px 0 60px; }
+.res-head { margin-bottom: 28px; }
+.res-title { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:800; color:var(--text); }
+.res-sub   { color:var(--muted); font-size:.9rem; margin-top:3px; }
+
+/* Card in results */
+.r-card {
+  background: #fff; border-radius: 18px; overflow: hidden;
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+  transition: transform .22s, box-shadow .22s; height: 100%;
+  display: flex; flex-direction: column;
+}
+.r-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.r-card img   { width: 100%; height: 200px; object-fit: cover; background: #f9f0e8; }
+.r-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+.r-name { font-weight: 700; font-size: .91rem; color: var(--text); line-height: 1.38;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
+.r-brand { font-size: .76rem; color: var(--saffron); font-weight: 600; margin-bottom: 8px; }
+.r-price { font-size: 1.1rem; font-weight: 800; color: var(--green); }
+.r-mrp   { font-size: .78rem; color: var(--muted); text-decoration: line-through; margin-left: 5px; }
+.r-off   { font-size: .72rem; background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 5px; font-weight: 700; margin-left: 3px; }
+.r-stars { color: #f59e0b; font-size: .76rem; }
+.r-match { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+.btn-cart2 { flex: 1; background: var(--saffron); color: #fff; border: none; border-radius: 10px; padding: 9px; font-weight: 700; font-size: .83rem; cursor: pointer; transition: .18s; }
+.btn-cart2:hover { background: #e05500; }
+.btn-wish2 { background: none; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 11px; color: var(--muted); cursor: pointer; transition: .18s; }
+.btn-wish2:hover { border-color: #e11d48; color: #e11d48; }
+.btn-view  { background: none; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 11px; color: var(--muted); cursor: pointer; transition: .18s; }
+.btn-view:hover { border-color: var(--saffron); color: var(--saffron); }
+
+/* Modal */
+.modal-content { border-radius: 20px; overflow: hidden; border: none; }
+.modal-img { width: 100%; height: 230px; object-fit: cover; }
+.modal-header { background: var(--saffron-bg); border-bottom: 1px solid var(--border); padding: 18px 24px; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--text); font-weight: 800; }
+
+/* Loading / Empty */
+.loading-state { text-align: center; padding: 70px; }
+.spin-icon { font-size: 2.8rem; color: var(--saffron); animation: spin 1s linear infinite; display: block; }
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state { text-align: center; padding: 80px 20px; }
+.empty-icon  { font-size: 4rem; margin-bottom: 16px; display: block; }
+{% endblock %}
+
+{% block content %}
+<div class="search-hero" id="top">
+  <h1>🔍 Find Your Perfect Product</h1>
+  <p>Type anything — a brand, product, or keyword — and let our AI do the magic</p>
+
+  <div class="search-box">
+    <label><i class="fas fa-search" style="margin-right:5px;"></i>Search Products</label>
+    <div class="s-row">
+      <div class="iw">
+        <input id="prodInput" type="text" placeholder="e.g. OPI Nail Polish, Colgate, Neutrogena, Dove…" autocomplete="off">
+        <div id="ac-list"></div>
+      </div>
+      <input id="nbrInput" type="number" value="8" min="1" max="20" title="How many results?">
+      <button id="searchBtn" onclick="doSearch()"><i class="fas fa-search" style="margin-right:6px;"></i>Search</button>
+    </div>
+    <div class="chip-row">
+      <span style="font-size:.78rem;color:var(--muted);align-self:center;">Try:</span>
+      {% for s in ['OPI','Neutrogena','Colgate','Maybelline','Dove','Revlon','Gillette','Lakme'] %}
+      <span class="s-chip" onclick="quickSearch('{{ s }}')">{{ s }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Results -->
+<div id="results" style="display:none;">
+  <div class="container">
+    <div id="res-hdr"></div>
+    <div id="err-area"></div>
+    <div class="row" id="cards"></div>
+  </div>
+</div>
+
+<div id="empty-state" class="empty-state">
+  <span class="empty-icon">🛍️</span>
+  <h5 style="font-family:'Playfair Display',serif;font-size:1.4rem;">Tell us what you're looking for!</h5>
+  <p style="color:var(--muted);max-width:400px;margin:0 auto;">Type a product name or brand above. Our AI will find the most relevant products for you instantly.</p>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="mTitle">Product Details</h5>
+        <button type="button" class="close" data-dismiss="modal" style="color:var(--muted);"><span>&times;</span></button>
+      </div>
+      <div class="modal-body" style="padding:24px;">
+        <div class="row">
+          <div class="col-md-5 mb-3">
+            <img id="mImg" src="" class="modal-img" style="border-radius:14px;" alt="">
+          </div>
+          <div class="col-md-7">
+            <span class="badge" id="mBrand" style="background:var(--saffron-bg);color:var(--saffron);font-size:.82rem;padding:6px 14px;border-radius:20px;font-weight:700;margin-bottom:10px;display:inline-block;"></span>
+            <div id="mStars" class="mb-3"></div>
+            <div style="background:var(--saffron-bg);border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+              <div style="font-size:1.8rem;font-weight:800;color:var(--green);" id="mPrice"></div>
+              <div style="font-size:.82rem;color:var(--muted);">MRP <span id="mMrp" style="text-decoration:line-through;"></span> <span id="mOff" class="badge-offer"></span></div>
+            </div>
+            <table style="width:100%;font-size:.88rem;">
+              <tr><td style="color:var(--muted);padding:5px 0;width:100px;">Rating</td><td id="mRating" style="font-weight:600;"></td></tr>
+              <tr><td style="color:var(--muted);padding:5px 0;">Reviews</td><td id="mReviews" style="font-weight:600;"></td></tr>
+              <tr><td style="color:var(--muted);padding:5px 0;">AI Match</td><td id="mScore" style="font-weight:600;color:var(--saffron);"></td></tr>
+            </table>
+            <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;">
+              <button class="btn-cart2" id="mCartBtn" style="width:100%;padding:13px;font-size:.95rem;border-radius:12px;">
+                <i class="fas fa-cart-plus" style="margin-right:8px;"></i>Add to Cart
+              </button>
+              <button class="btn-wish2" id="mWishBtn" style="width:100%;padding:11px;border-radius:12px;">
+                <i class="fas fa-heart" style="margin-right:8px;"></i>Save to Wishlist
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var FALLBACKS=[{% for i in range(1,9) %}'/static/img/img_{{ i }}.png'{% if not loop.last %},{% endif %}{% endfor %}];
+var _recData=[], acTimer, acItems=[], acIdx=-1;
+function fb(i){return FALLBACKS[i%8];}
+function quickSearch(q){document.getElementById('prodInput').value=q;doSearch();}
+
+// Autocomplete
+document.getElementById('prodInput').addEventListener('input',function(){
+  clearTimeout(acTimer); var q=this.value.trim();
+  if(q.length<2){closeAC();return;}
+  acTimer=setTimeout(function(){fetchAC(q);},240);
+});
+document.getElementById('prodInput').addEventListener('keydown',function(e){
+  var items=document.querySelectorAll('#ac-list .ac-item');
+  if(e.key==='ArrowDown'){acIdx=Math.min(acIdx+1,items.length-1);hlAC(items);}
+  else if(e.key==='ArrowUp'){acIdx=Math.max(acIdx-1,-1);hlAC(items);}
+  else if(e.key==='Enter'){if(acIdx>=0&&acItems[acIdx]){document.getElementById('prodInput').value=acItems[acIdx];closeAC();}doSearch();}
+  else if(e.key==='Escape'){closeAC();}
+});
+document.getElementById('nbrInput').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch();});
+document.addEventListener('click',function(e){if(!e.target.closest('#ac-list')&&e.target.id!=='prodInput')closeAC();});
+
+function fetchAC(q){fetch('/api/products?q='+encodeURIComponent(q)).then(r=>r.json()).then(function(names){acItems=names;acIdx=-1;renderAC(q);});}
+function renderAC(q){
+  var list=document.getElementById('ac-list');
+  if(!acItems.length){closeAC();return;}
+  list.innerHTML='';
+  acItems.forEach(function(n){
+    var d=document.createElement('div');d.className='ac-item';
+    d.innerHTML=n.replace(new RegExp('('+escRe(q)+')','gi'),'<em>$1</em>');
+    d.addEventListener('mousedown',function(e){e.preventDefault();});
+    d.addEventListener('click',function(){document.getElementById('prodInput').value=n;closeAC();doSearch();});
+    list.appendChild(d);
+  });
+  list.style.display='block';
+}
+function hlAC(items){items.forEach(function(it,i){it.classList.toggle('active',i===acIdx);});if(acIdx>=0&&acItems[acIdx])document.getElementById('prodInput').value=acItems[acIdx];}
+function closeAC(){document.getElementById('ac-list').style.display='none';acItems=[];acIdx=-1;}
+function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
+// Search
+function doSearch(){
+  closeAC();
+  var prod=document.getElementById('prodInput').value.trim();
+  var nbr=parseInt(document.getElementById('nbrInput').value)||8;
+  if(!prod){showErr('Please enter a product name or keyword 🙏');return;}
+  showLoading();
+  fetch('/api/recommend',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prod:prod,nbr:nbr})})
+  .then(function(r){if(!r.ok)return r.json().then(function(d){throw new Error(d.error||'Something went wrong');});return r.json();})
+  .then(renderResults).catch(function(e){showErr(e.message);});
+}
+function showLoading(){
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('results').style.display='block';
+  document.getElementById('res-hdr').innerHTML='';
+  document.getElementById('err-area').innerHTML='';
+  document.getElementById('cards').innerHTML='<div class="col-12 loading-state"><span class="spin-icon"><i class="fas fa-spinner"></i></span><p style="margin-top:16px;color:var(--muted);">Finding the best products for you…</p></div>';
+}
+function showErr(msg){
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('results').style.display='block';
+  document.getElementById('res-hdr').innerHTML='';
+  document.getElementById('cards').innerHTML='';
+  document.getElementById('err-area').innerHTML=
+    '<div style="background:#fff3cd;border-radius:14px;padding:20px 24px;color:#856404;margin-bottom:20px;">'+
+    '<strong>😕 Oops! </strong>'+msg+
+    '<br><small style="margin-top:6px;display:block;">Tip: Try shorter keywords like <strong>Colgate</strong>, <strong>OPI</strong>, or <strong>Dove</strong></small></div>';
+}
+
+function renderResults(data){
+  _recData=data.results;
+  document.getElementById('res-hdr').innerHTML=
+    '<div class="res-head">'+
+    '<div class="res-title">🎯 Recommended For You</div>'+
+    '<div class="res-sub">Found <strong>'+data.count+'</strong> great matches for "<strong>'+escH(data.query)+'</strong>"</div>'+
+    '<div class="sec-line"></div></div>';
+  var row=document.getElementById('cards'); row.innerHTML='';
+  data.results.forEach(function(p,i){
+    var img=p.image_url&&p.image_url.startsWith('http')?p.image_url:fb(i);
+    var stars='',f=Math.floor(p.rating),h=(p.rating-f)>=0.5;
+    for(var s=0;s<f;s++)stars+='<i class="fas fa-star"></i>';
+    if(h)stars+='<i class="fas fa-star-half-alt"></i>';
+    var mrp=Math.round(p.price*1.2);
+    var offPct=Math.round((mrp-p.price)/mrp*100);
+    var col=document.createElement('div'); col.className='col-lg-3 col-md-4 col-sm-6 mb-4';
+    col.innerHTML=
+      '<div class="r-card">'+
+        '<img src="'+img+'" alt="'+escH(p.name)+'" onerror="this.src=\''+fb(i)+'\'">'+
+        '<div class="r-body">'+
+          '<div class="r-name" title="'+escH(p.name)+'">'+escH(p.name)+'</div>'+
+          '<div class="r-brand"><i class="fas fa-tag" style="margin-right:3px;"></i>'+escH(p.brand)+'</div>'+
+          '<div class="d-flex align-items-center flex-wrap mb-2">'+
+            '<span class="r-price">₹'+p.price.toLocaleString('en-IN')+'</span>'+
+            '<span class="r-mrp">₹'+mrp.toLocaleString('en-IN')+'</span>'+
+            '<span class="r-off">'+offPct+'% off</span>'+
+          '</div>'+
+          '<div class="d-flex align-items-center mb-1"><span class="r-stars">'+stars+'</span><span style="font-size:.73rem;color:var(--muted);margin-left:5px;">('+p.review_count+')</span></div>'+
+          '<div class="r-match"><i class="fas fa-check-circle" style="color:var(--green);margin-right:3px;"></i>AI Match: '+Math.round(p.score*100)+'%</div>'+
+          '<div class="d-flex mt-auto pt-2" style="gap:6px;">'+
+            '<button class="btn-cart2" onclick="addToCart(\''+escJ(p.name)+'\',\''+escJ(p.brand)+'\','+p.price+',\''+escJ(img)+'\','+p.rating+')">'+
+              '<i class="fas fa-cart-plus"></i> Cart</button>'+
+            '<button class="btn-wish2" onclick="addToWishlist(\''+escJ(p.name)+'\',\''+escJ(p.brand)+'\','+p.price+',\''+escJ(img)+'\','+p.rating+')" title="Wishlist">'+
+              '<i class="fas fa-heart"></i></button>'+
+            '<button class="btn-view" onclick="openModal('+i+')" title="View Details">'+
+              '<i class="fas fa-eye"></i></button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    row.appendChild(col);
+  });
+}
+
+function openModal(i){
+  var p=_recData[i]; if(!p)return;
+  var img=p.image_url&&p.image_url.startsWith('http')?p.image_url:fb(i);
+  var stars='',f=Math.floor(p.rating),h=(p.rating-f)>=0.5;
+  for(var s=0;s<f;s++)stars+='<i class="fas fa-star" style="color:#f59e0b;"></i>';
+  if(h)stars+='<i class="fas fa-star-half-alt" style="color:#f59e0b;"></i>';
+  stars+=' <span style="color:var(--muted);font-size:.85rem;margin-left:3px;">'+p.rating.toFixed(1)+' / 5</span>';
+  var mrp=Math.round(p.price*1.2);
+  var offPct=Math.round((mrp-p.price)/mrp*100);
+  document.getElementById('mTitle').textContent=p.name;
+  document.getElementById('mImg').src=img;
+  document.getElementById('mImg').onerror=function(){this.src=fb(i);};
+  document.getElementById('mBrand').textContent=p.brand;
+  document.getElementById('mStars').innerHTML=stars;
+  document.getElementById('mPrice').textContent='₹'+parseInt(p.price).toLocaleString('en-IN');
+  document.getElementById('mMrp').textContent='₹'+mrp.toLocaleString('en-IN');
+  document.getElementById('mOff').textContent=offPct+'% OFF';
+  document.getElementById('mRating').textContent=p.rating.toFixed(1)+' ⭐ out of 5';
+  document.getElementById('mReviews').textContent=p.review_count.toLocaleString('en-IN')+' verified reviews';
+  document.getElementById('mScore').textContent=Math.round(p.score*100)+'% match for your search';
+  document.getElementById('mCartBtn').onclick=function(){addToCart(p.name,p.brand,p.price,img,p.rating);};
+  document.getElementById('mWishBtn').onclick=function(){addToWishlist(p.name,p.brand,p.price,img,p.rating);};
+  $('#detailModal').modal('show');
+}
+
+function escH(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function escJ(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');}
+</script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Bazaar — Order Confirmed!{% endblock %}
+{% block extra_style %}
+.confirmed-wrap{min-height:70vh;display:flex;align-items:center;justify-content:center;padding:50px 20px;}
+.confirmed-card{background:#fff;border-radius:24px;box-shadow:var(--shadow-lg);border:1px solid var(--border);padding:44px 36px;max-width:660px;width:100%;text-align:center;}
+.tick-circle{width:86px;height:86px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:2.4rem;color:#fff;animation:popIn .5s ease;}
+@keyframes popIn{0%{transform:scale(0);opacity:0;}70%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+.order-id-tag{background:var(--saffron-bg);border-radius:10px;padding:8px 18px;font-size:.88rem;font-weight:700;color:var(--earth);display:inline-block;margin-bottom:22px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0;text-align:left;}
+.detail-box{background:var(--cream);border-radius:12px;padding:13px 15px;border:1px solid var(--border);}
+.detail-box label{font-size:.73rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;}
+.detail-box span{font-size:.88rem;font-weight:600;color:var(--text);}
+.items-list{text-align:left;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:18px 0;}
+.o-item{display:flex;align-items:center;gap:12px;padding:11px 15px;border-bottom:1px solid var(--border);}
+.o-item:last-child{border-bottom:none;}
+.o-item img{width:48px;height:48px;object-fit:cover;border-radius:8px;}
+.o-item-name{flex:1;font-size:.83rem;font-weight:600;color:var(--text);}
+.o-item-price{font-weight:800;color:var(--green);font-size:.86rem;}
+.track-bar{display:flex;justify-content:space-between;align-items:center;margin:24px 0;position:relative;}
+.track-bar::before{content:'';position:absolute;top:16px;left:16px;right:16px;height:3px;background:var(--border);z-index:0;}
+.track-bar::after{content:'';position:absolute;top:16px;left:16px;width:25%;height:3px;background:var(--green);z-index:1;}
+.t-step{display:flex;flex-direction:column;align-items:center;gap:5px;z-index:2;}
+.t-circle{width:33px;height:33px;border-radius:50%;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:.88rem;}
+.t-step.done .t-circle{border-color:var(--green);background:var(--green);color:#fff;}
+.t-step.active .t-circle{border-color:var(--saffron);background:var(--saffron);color:#fff;}
+.t-label{font-size:.7rem;font-weight:600;color:var(--muted);}
+.t-step.done .t-label,.t-step.active .t-label{color:var(--text);}
+.btn-home{background:var(--saffron);color:#fff;padding:13px 28px;border-radius:12px;font-weight:700;text-decoration:none;font-size:.97rem;display:inline-block;margin:6px;transition:.18s;}
+.btn-home:hover{background:#e05500;color:#fff;text-decoration:none;}
+.btn-orders{border:2px solid var(--saffron);color:var(--saffron);padding:11px 24px;border-radius:12px;font-weight:700;text-decoration:none;font-size:.92rem;display:inline-block;margin:6px;transition:.18s;}
+.btn-orders:hover{background:var(--saffron);color:#fff;text-decoration:none;}
+@media(max-width:576px){.detail-grid{grid-template-columns:1fr;}.confirmed-card{padding:28px 18px;}}
+{% endblock %}
+{% block content %}
+<div class="confirmed-wrap">
+  <div class="confirmed-card">
+    <div class="tick-circle">✓</div>
+    <h2 style="font-family:'Playfair Display',serif;font-weight:800;color:var(--text);margin-bottom:6px;">Order Placed!</h2>
+    <p style="color:var(--muted);margin-bottom:14px;">Thank you <strong>{{ order.full_name }}</strong>! Your order is confirmed.</p>
+    <div class="order-id-tag">📦 Order #{{ '%04d'|format(order.id) }} &nbsp;|&nbsp; {{ order.placed_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+
+    <div class="track-bar">
+      <div class="t-step done"><div class="t-circle">✓</div><div class="t-label">Confirmed</div></div>
+      <div class="t-step active"><div class="t-circle"><i class="fas fa-box"></i></div><div class="t-label">Packing</div></div>
+      <div class="t-step"><div class="t-circle"><i class="fas fa-shipping-fast"></i></div><div class="t-label">Shipped</div></div>
+      <div class="t-step"><div class="t-circle"><i class="fas fa-home"></i></div><div class="t-label">Delivered</div></div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-box">
+        <label>📍 Delivering To</label>
+        <span>{{ order.address1 }}{% if order.address2 %}, {{ order.address2 }}{% endif %}, {{ order.city }}, {{ order.state }} — {{ order.pincode }}</span>
+      </div>
+      <div class="detail-box">
+        <label>💰 Payment</label>
+        <span>{% if order.payment_method=='cod' %}💵 Cash on Delivery{% elif order.payment_method=='upi' %}📱 UPI{% elif order.payment_method=='card' %}💳 Card{% else %}🏦 Net Banking{% endif %}</span>
+      </div>
+      <div class="detail-box">
+        <label>📞 Contact</label>
+        <span>{{ order.mobile }}</span>
+      </div>
+      <div class="detail-box">
+        <label>💵 Total Paid</label>
+        <span style="color:var(--green);font-size:.97rem;">₹{{ order.total_amount|int }}</span>
+      </div>
+    </div>
+
+    <div class="items-list">
+      {% for item in items %}
+      <div class="o-item">
+        <img src="{{ item.image_url or '/static/img/img_1.png' }}" onerror="this.src='/static/img/img_1.png'">
+        <div class="o-item-name">{{ item.name[:50] }}{% if item.name|length > 50 %}…{% endif %}
+          <div style="color:var(--muted);font-size:.73rem;">Qty: {{ item.qty }} × ₹{{ item.price|int }}</div>
+        </div>
+        <div class="o-item-price">₹{{ (item.price * item.qty)|int }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:22px;">
+      <i class="fas fa-envelope" style="color:var(--saffron);margin-right:5px;"></i>
+      Confirmation sent to <strong>{{ order.email }}</strong>
+    </p>
+    <div>
+      <a href="/" class="btn-home"><i class="fas fa-home" style="margin-right:7px;"></i>Continue Shopping</a>
+      <a href="/my_orders" class="btn-orders"><i class="fas fa-list" style="margin-right:7px;"></i>My Orders</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
